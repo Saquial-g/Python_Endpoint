@@ -2,7 +2,6 @@ import requestProcessing as rp
 import flask as fl
 import os
 import io
-import time
 
 from flask import after_this_request
 
