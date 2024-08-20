@@ -1,5 +1,10 @@
 import requestProcessing as rp
 import flask as fl
+import os
+import io
+import time
+
+from flask import after_this_request
 
 app = fl.Flask(__name__)
 
@@ -18,7 +23,18 @@ def GETcharaReq():
     data["type"] = fl.request.args.get('type')
     data["gender"] = fl.request.args.get('gender')
     
-    return rp.consumeAPI(data)
+    result = rp.consumeAPI(data)
+        
+    if result[1] == 200:
+        response = fl.send_file(
+            io.BytesIO(result[2][1]),
+            as_attachment=True,
+            download_name= result[2][0] + ".zip"
+        )
+
+        return response, result[1]
+    else:
+        return result[0], result[1]
 
 @app.route("/character", methods=['POST'])
 def POSTcharaReq():
@@ -32,7 +48,21 @@ def POSTcharaReq():
         data["species"] = content.get("species")
         data["type"] = content.get("type")
         data["gender"] = content.get("gender")
+        
+        result = rp.consumeAPI(data)
+        
+        if result[1] == 200:
+            response = fl.send_file(
+                io.BytesIO(result[2][1]),
+                as_attachment=True,
+                download_name= result[2][0] + ".zip"
+            )
 
-        return rp.consumeAPI(data)
+            return response, result[1]
+        else:
+            return result[0], result[1]
     else:
         return "Content-Type not supported.", 415
+
+if __name__ == '__main__':
+    app.run(port=5000,debug=True) 

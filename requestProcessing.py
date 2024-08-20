@@ -1,8 +1,7 @@
 import requests
 import os
 import zipfile
-
-from flask import request
+import flask as fl
 
 CacheFolder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache")
 
@@ -24,9 +23,15 @@ def consumeAPI(data):
     print(URL)
     response = requests.get(URL)
 
+
     if response.status_code == 200:
-        save(response)
-        return "Information fetched and downloaded successfully", 200
+        zipF = save(response)
+
+        try:
+            return "Information gathered successfuly", 200, zipF
+        except FileNotFoundError:
+            return "File not found in the specified directory", 404
+        
     else:
         return "The requested information couldn't be found", 404
 
@@ -42,7 +47,14 @@ def save(response):
     with open(jsonRoute, "wb") as f:
         f.write(response.content)
 
-        with zipfile.ZipFile(zipRoute, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
-            zf.write(jsonRoute, arcname= name + ".json")
-        
-    
+    with zipfile.ZipFile(zipRoute, "x", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
+        zf.write(jsonRoute, arcname= name + ".json")
+
+    zipData = ""
+    with open(zipRoute, "rb") as zf:
+        zipData = zf.read()
+
+    os.remove(jsonRoute)
+    os.remove(zipRoute)
+
+    return name, zipData
