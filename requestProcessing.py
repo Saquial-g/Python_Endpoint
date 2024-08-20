@@ -5,11 +5,11 @@ import flask as fl
 
 CacheFolder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache")
 
-def consumeAPI(data):
-    URL = "https://rickandmortyapi.com/api/character"
-    
+# Connects with the API with a GET request using the provided data
+def consumeAPI(URL, data):
     filters = False
 
+    # Generates the URL with the given parameters
     for k, v in data.items():
         if v:
             if filters:
@@ -23,10 +23,8 @@ def consumeAPI(data):
     print(URL)
     response = requests.get(URL)
 
-
     if response.status_code == 200:
         zipF = save(response)
-
         try:
             return "Information gathered successfuly", 200, zipF
         except FileNotFoundError:
@@ -35,7 +33,7 @@ def consumeAPI(data):
     else:
         return "The requested information couldn't be found", 404
 
-
+# Save the fetched information in a JSON file inside a ZIP file and get the byte data
 def save(response):
     if not os.path.isdir(CacheFolder):
         os.makedirs(CacheFolder)
